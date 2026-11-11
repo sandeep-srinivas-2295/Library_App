@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Book Catalogue</h3>
+    <form class="d-flex" method="GET" action="{{ url_for('index') }}">
+        <input class="form-control me-2" type="search" name="search" placeholder="Title, Author or ISBN" value="{{ search_query }}">
+        <button class="btn btn-outline-primary" type="submit">Search</button>
+        {% if search_query %}
+            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary ms-2">Reset</a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-hover table-striped mb-0 align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>ISBN</th>
+                    <th>Status</th>
+                    <th>Issued To</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for book in books %}
+                <tr>
+                    <td>{{ book.id }}</td>
+                    <td class="fw-bold">{{ book.title }}</td>
+                    <td>{{ book.author }}</td>
+                    <td><code>{{ book.isbn }}</code></td>
+                    <td>
+                        {% if book.status == 'Available' %}
+                            <span class="badge bg-success">Available</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">Issued</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ book.issued_to if book.issued_to else '-' }}</td>
+                    <td class="text-end">
+                        {% if book.status == 'Available' %}
+                            <form action="{{ url_for('issue_book', book_id=book.id) }}" method="POST" class="d-inline">
+                                <div class="input-group input-group-sm d-inline-flex" style="width: 220px;">
+                                    <input type="text" name="issued_to" class="form-control" placeholder="Borrower name" required>
+                                    <button type="submit" class="btn btn-sm btn-outline-primary">Issue</button>
+                                </div>
+                            </form>
+                        {% else %}
+                            <form action="{{ url_for('return_book', book_id=book.id) }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-success">Return</button>
+                            </form>
+                        {% endif %}
+                        
+                        <form action="{{ url_for('delete_book', book_id=book.id) }}" method="POST" class="d-inline ms-1" onsubmit="return confirm('Are you sure you want to delete this book?');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center py-4 text-muted">No books found in catalogue.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
